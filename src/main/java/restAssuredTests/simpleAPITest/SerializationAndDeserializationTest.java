@@ -1,6 +1,9 @@
 package restAssuredTests.simpleAPITest;
 
 import static io.restassured.RestAssured.given;
+import static org.testng.Assert.assertTrue;
+
+import restAssuredTests.simpleAPITest.*;
 
 import java.util.List;
 
@@ -14,40 +17,63 @@ import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 
 public class SerializationAndDeserializationTest {
 
+HelperMethods helperMethods = new HelperMethods();
+
 	@BeforeTest
 	public void setUp() {
-
-		RestAssured.baseURI = "https://reqres.in/api/users";
+			helperMethods.setUpTestURL("https://reqres.in");
+		
 	}
 
 	@Test
 	public void testCreateUser() throws JsonProcessingException {
+		
+		String desiredName = "Sumit";
+		
 		ReqUser reqUser = new ReqUser();
 		reqUser.setJob("TestQA");
-		reqUser.setName("Sumit");
+		reqUser.setName(desiredName);
 
+		RequestSpecification requestSpecification = given().body(reqUser);
+				
 
-		RequestSpecification requestSpecification = given().basePath("api/users").body(reqUser);
+		ResponseSpecification responseSpecification = helperMethods.buildRspnSpec(201).build();
 
-		// Response Object
-		Response response = requestSpecification.request(Method.POST);
-
-		// Validate the response code
-		Assert.assertTrue(response.getStatusCode() == 201, "The response code is not 201");
+		// Validate the response code		
+		Response response = given().spec(requestSpecification)
+		.log().uri()
+		.when().post("api/users")
+		.then()
+		.spec(responseSpecification)
+		.log().all()				
+		.extract().response();
+		
+		//Validate the content of the response
+		assertTrue(response.asString().contains(desiredName));
 
 	}
 	
 	@Test
-	public void testGetAllUserDetails() {
+	public void testGetAllUserDetails() {			
 
-			// Request Object
-			RequestSpecification requestSpecification = given();
-
+		    RequestSpecification requestSpecification = given().body(helperMethods.buildReqstSpec("page", 1));
 			// Response Object
-			Response response = requestSpecification.request(Method.GET);
+			ResponseSpecification responseSpecification = helperMethods.buildRspnSpec(201).build();
+
+			// Validate the response code		
+			Response response = given().spec(requestSpecification)
+			.log().uri()
+			.when().get("/api/users")
+			.then()
+			.spec(responseSpecification)
+			
+			//
+			.log().body()				
+			.extract().response();
 
 			// print the values in the console
 			UsersDetails userDetails = response.as(UsersDetails.class);
