@@ -1,4 +1,4 @@
-package restAssuredTests.simpleAPITest;
+package testAPIJson;
 
 import static io.restassured.RestAssured.expect;
 import static io.restassured.RestAssured.given;
